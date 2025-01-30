@@ -26,7 +26,7 @@ exports.getBanners = (req, res) => {
             console.error('Database error:', err);
             return res.status(500).json({ error: 'Failed to fetch banners' });
         }
-        res.json({message:"get images",results});
+        res.json({ message: "get images", results });
     });
 };
 
@@ -55,7 +55,7 @@ exports.createMidBanners = (req, res) => {
     });
 };
 
-exports.getAllBanners = (req, res) => {
+exports.getAllBannersRRRRRRRRRRR = (req, res) => {
     const sql = 'SELECT * FROM mainbanner';
     conn.query(sql, (err, result) => {
         if (err) {
@@ -64,6 +64,15 @@ exports.getAllBanners = (req, res) => {
         }
         res.status(200).json({ message: 'All banners retrieved successfully', banners: result });
     });
+};
+exports.getAllBanners = async (req, res) => {
+    try {
+        const [rows] = await conn.query('SELECT * FROM midbanners'); // Ensure 'midbanners' table exists
+        res.json(rows);
+    } catch (error) {
+        console.error('❌ Error in getmidbanners API:', error.message);
+        res.status(500).json({ error: "Database retrieval failed" });
+    }
 };
 // = =============== aboutUs banners ================================================
 
@@ -84,7 +93,7 @@ exports.createAboutUsBanners = (req, res) => {
     });
 };
 exports.getAboutUsBanners = (req, res) => {
-    const sql = 'SELECT * FROM aboutus';  
+    const sql = 'SELECT * FROM aboutus';
     conn.query(sql, (err, result) => {
         if (err) {
             console.error('Database error:', err);
@@ -123,7 +132,7 @@ exports.createBike = (req, res) => {
 };
 
 exports.getBikes = (req, res) => {
-    const sql = 'SELECT * FROM bikes'; 
+    const sql = 'SELECT * FROM bikes';
     conn.query(sql, (err, result) => {
         if (err) {
             console.error('Database error:', err);
@@ -182,7 +191,7 @@ exports.deleteBike = (req, res) => {
     const bikeId = req.params.id;
 
     const sql = 'DELETE FROM bikes WHERE id = ?';
-    
+
     conn.query(sql, [bikeId], (err, result) => {
         if (err) {
             console.error('Database error:', err);
