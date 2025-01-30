@@ -19,8 +19,15 @@ router.get('/getAboutUsBanners', controller.getAboutUsBanners);
 router.post('/addBike', upload.single('image'), controller.createBike);
 router.get('/getBikes', controller.getBikes);
 router.put('/updateBike/:id', upload.single('image'), controller.updateBike);
-router.get('/getBikeById/:id', controller.getBikeById);
+// router.get('/getBikeById/:id', controller.getBikeById);
 router.delete('/deleteBike/:id', controller.deleteBike);
+
+//==============upload  Image 
+router.post("/uploadImage", upload.single("image"), controller.uploadImage);
+// \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+router.post('/addBikes', controller.createBikes);                                   
+router.get('/getAllBikes', controller.getAllBikes);                                  
+router.get('/getBikeById/:id', controller.getBikeById);                                    
 
 //========= vehicle model add ==========================================================
 router.post('/createVehicleModel', controller.createVehicleModel);

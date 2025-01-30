@@ -9,6 +9,7 @@ const routes = require('./routes/route');
 //=====================================
 
 const app = express();
+// app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(bodyParser.json());
