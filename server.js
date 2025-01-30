@@ -11,11 +11,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(bodyParser.json());
 
-app.get('/',(res,req)=>{
-    console.log("hello");
-    
-   res.send({message:"hello"})
-})
+app.get('/',(req,res)=>{
+    res.send("Hello !")
+});
 
 // Use the routes
 app.use('/api', routes);
