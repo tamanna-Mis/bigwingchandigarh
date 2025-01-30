@@ -6,7 +6,7 @@ require('dotenv').config();
 require('./config/conn')
 const routes = require('./routes/route');
 
-//===================================
+//=====================================
 
 const app = express();
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
