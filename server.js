@@ -2,6 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
+require('dotenv').config();
 require('./config/conn')
 const routes = require('./routes/route');
 
@@ -11,15 +12,20 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(bodyParser.json());
 
-app.get('/',(req,res)=>{
-    res.send("Hello !")
-});
+app.get('/', (req, res) => {
+    try {
+      res.status(200).send('Hello World');
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
 
 // Use the routes
 app.use('/api', routes);
 
 // Start the server
-const PORT = 4000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
