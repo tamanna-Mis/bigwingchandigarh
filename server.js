@@ -4,11 +4,13 @@ const bodyParser = require('body-parser');
 const path = require('path');
 require('dotenv').config();
 require('./config/conn')
+const cors = require('cors');
 const routes = require('./routes/route');
 
 //=====================================
 
 const app = express();
+app.use(cors());
 // app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

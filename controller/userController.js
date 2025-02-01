@@ -55,8 +55,8 @@ exports.createMidBanners = (req, res) => {
     });
 };
 
-exports.getAllBanners = (req, res) => {
-    const sql = 'SELECT * FROM mainbanner';
+exports.getMidAllBanners = (req, res) => {
+    const sql = 'SELECT * FROM midbanners';
     conn.query(sql, (err, result) => {
         if (err) {
             console.error('Database error:', err);
@@ -99,130 +99,13 @@ exports.getAboutUsBanners = (req, res) => {
     });
 };
 
-//=========== add  bike =================================================================
-exports.createBikeRRRRRRRRRRR = (req, res) => {
-    const { bikeName, desc } = req.body;
-    if (!bikeName || !desc || !req.file) {
-        return res.status(400).json({ error: 'Missing required fields (bikeName, desc, or image)' });
-    }
+//======= Image upload for add bike api ======================================================================
 
-    const imageUrl = `/uploads/${req.file.filename}`;
-
-    // SQL query to insert the new bike into the database
-    const sql = 'INSERT INTO bikes (bikeName, image, description) VALUES (?, ?, ?)';
-    const values = [bikeName, imageUrl, desc];
-
-    conn.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database insertion failed' });
-        }
-
-        res.status(201).json({ message: 'Bike created successfully', bike: { bikeName, imageUrl, desc } });
-    });
-};
-exports.createBike = async (req, res) => {
-    try {
-        const { bikeName, desc } = req.body;
-
-        if (!bikeName || !desc || !req.file) {
-            return res.status(400).json({ error: 'Missing required fields (bikeName, desc, or image)' });
-        }
-
-        const imageUrl = `/uploads/${req.file.filename}`;
-        const sql = 'INSERT INTO bikes (bikeName, image, description) VALUES (?, ?, ?)';
-        const values = [bikeName, imageUrl, desc];
-        const [result] = await conn.promise().query(sql, values);
-        res.status(201).json({ message: 'Bike created successfully', bike:{bikeName, imageUrl, desc}  });
-    } catch (err) {
-        console.error('Error:', err);
-        if (err.code === 'ER_BAD_FIELD_ERROR') {
-            return res.status(400).json({ error: 'Invalid field(s) in the request' });
-        }
-        res.status(500).json({ error: 'Database insertion failed' });
-    }
-};
-exports.getBikes = (req, res) => {
-    const sql = 'SELECT * FROM bikes'; 
-    conn.query(sql, (err, result) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database retrieval failed' });
-        }
-        if (result.length === 0) {
-            return res.status(404).json({ message: 'No bikes found' });
-        }
-        res.status(200).json({ message: 'Bikes retrieved successfully', bikes: result });
-    });
-};
-exports.updateBike = (req, res) => {
-    const { bikeName, desc } = req.body;
-    const bikeId = req.params.id;
-
-    if (!bikeName || !desc) {
-        return res.status(400).json({ error: 'Missing required fields (bikeName, desc)' });
-    }
-
-    let updateQuery = 'UPDATE bikes SET bikeName = ?, description = ?';
-    let values = [bikeName, desc];
-
-    if (req.file) {
-        const imageUrl = `/uploads/${req.file.filename}`;
-        updateQuery += ', image = ?';
-        values.push(imageUrl);
-    }
-
-    updateQuery += ' WHERE id = ?';
-    values.push(bikeId);
-
-    conn.query(updateQuery, values, (err, result) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database update failed' });
-        }
-        res.status(200).json({ message: 'Bike updated successfully' });
-    });
-};
-exports.getBikeByIdssss = (req, res) => {
-    const bikeId = req.params.id;
-    const sql = 'SELECT * FROM bikes WHERE id = ?';
-    conn.query(sql, [bikeId], (err, result) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database retrieval failed' });
-        }
-        if (result.length === 0) {
-            return res.status(404).json({ message: 'Bike not found' });
-        }
-        res.status(200).json({ message: 'Bike retrieved successfully', bike: result[0] });
-    });
-};
-
-exports.deleteBike = (req, res) => {
-    const bikeId = req.params.id;
-
-    const sql = 'DELETE FROM bikes WHERE id = ?';
-    
-    conn.query(sql, [bikeId], (err, result) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database deletion failed' });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Bike not found' });
-        }
-        res.status(200).json({ message: 'Bike deleted successfully' });
-    });
-};
-///////////////////////////////////////////////////
-//=======
 exports.uploadImage = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: "No file uploaded" });
         }
-
-        // Generate Image URL
         const imageUrl = `/uploads/${req.file.filename}`;
 
         res.status(201).json({
@@ -235,17 +118,23 @@ exports.uploadImage = async (req, res) => {
     }
 };
 
+// ==== Add bike api =================================================================================
 exports.createBikes = async (req, res) => {
     try {
-        // console.log("Request Body:", req.body);
+        
         const { bikeName, desc, title, priceInCity, engine, power, transmission, specification, colours, image, moreImages } = req.body;
 
-        // Validation: Ensure required fields exist
+        
         if (!bikeName || !desc || !image || !priceInCity || !specification) {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        // Convert JSON fields into string before saving to MySQL
+        const findBikeName = `SELECT * FROM  bikes WHERE ${bikeName}`;
+        if(findBikeName){
+            return res.send({ message:"bikeName Already exist . "})
+        }
+
+  
         const priceInCityStr = JSON.stringify(priceInCity);
         const specificationStr = JSON.stringify(specification);
         const moreImagesStr = JSON.stringify(moreImages);
@@ -272,7 +161,6 @@ exports.createBikes = async (req, res) => {
             transmission,
             specification: JSON.parse(specificationStr),
             colours: JSON.parse(coloursImagesStr),
-            // colours
         });
     } catch (err) {
         console.error("Error:", err);
@@ -296,6 +184,29 @@ exports.getAllBikes = async (req, res) => {
         res.status(500).json({ error: "Database retrieval failed" });
     }
 };
+
+// =====================================================================================================
+exports.getAllMotorCycle = async (req, res) => {
+    try {
+        const sql = 'SELECT id ,    bikeName, image, description FROM bikes';
+
+        conn.query(sql, (err, result) => {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ error: 'Database query failed' });
+            }
+
+            // Send the query result as JSON
+            res.status(200).json({
+                message: 'Bikes retrieved successfully',
+                bikes: result,
+            });
+        });
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 exports.getBikeById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -317,7 +228,6 @@ exports.getBikeById = async (req, res) => {
         res.status(500).json({ error: "Database retrieval failed" });
     }
 };
-
 exports.updateBike = async (req, res) => {
     try {
         const { id } = req.params;
@@ -344,14 +254,24 @@ exports.updateBike = async (req, res) => {
         res.status(500).json({ error: "Database update failed" });
     }
 };
+exports.deleteBike = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const sql = "DELETE FROM bikes WHERE id = ?";
+        const [result] = await conn.promise().query(sql, [id]);
 
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Bike not found" });
+        }
 
+        res.status(200).json({ message: "Bike deleted successfully" });
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ error: "Database deletion failed" });
+    }
+};
 
-
-
-
-
-//========= vehicle model add ==========================================================
+//========= vehicle model add ===========================================================================
 exports.createVehicleModel = (req, res) => {
     const { vehicleModel } = req.body;
     if (!vehicleModel) {
@@ -443,18 +363,22 @@ exports.deleteVehicleModel = (req, res) => {
 //================ createVehicleDetails ==================================================================
 
 exports.createVehicleDetails = (req, res) => {
-
     const { vehicleModel, otherModel, yearOfPurchase, serviceType, registrationNo } = req.body;
-    if (!vehicleModel || !otherModel || !yearOfPurchase || !serviceType || !registrationNo) {
-        return res.status(400).json({ error: 'All fields are required' });
+    
+    if ((!vehicleModel && !otherModel) || !yearOfPurchase || !serviceType || !registrationNo) {
+        return res.status(400).json({ error: 'Either vehicleModel or otherModel is required, along with all other fields' });
     }
 
     const createdAt = new Date();
     const updatedAt = new Date();
+
+    const safeVehicleModel = vehicleModel || "";
+    const safeOtherModel = otherModel || "";
+
     const sql = `INSERT INTO vehicle_details (vehicleModel, otherModel, yearOfPurchase, serviceType, registrationNo, createdAt, updatedAt) 
                  VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-    const values = [vehicleModel, otherModel, yearOfPurchase, serviceType, registrationNo, createdAt, updatedAt];
+    const values = [safeVehicleModel, safeOtherModel, yearOfPurchase, serviceType, registrationNo, createdAt, updatedAt];
 
     conn.query(sql, values, (err, result) => {
         if (err) {
@@ -465,11 +389,38 @@ exports.createVehicleDetails = (req, res) => {
     });
 };
 
+exports.createVehicleDetailsRRRRRRR = async (req, res) => {
+    const { vehicleModel, otherModel, yearOfPurchase, serviceType, registrationNo } = req.body;
+    if ((!vehicleModel && !otherModel) || !yearOfPurchase || !serviceType || !registrationNo) {
+        return res.status(400).json({ error: 'Either vehicleModel or otherModel is required, along with all other fields' });
+    }
+
+    const createdAt = new Date();
+    const updatedAt = new Date();
+
+    // Ensure empty string instead of NULL for non-nullable columns
+    const safeVehicleModel = vehicleModel || "";
+    const safeOtherModel = otherModel || "";
+
+    const sql = `INSERT INTO vehicle_details (vehicleModel, otherModel, yearOfPurchase, serviceType, registrationNo, createdAt, updatedAt) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    
+    const values = [safeVehicleModel, safeOtherModel, yearOfPurchase, serviceType, registrationNo, createdAt, updatedAt];
+    
+    try {
+        const [result] = await conn.query(sql, values);
+        res.status(201).json({ message: 'Vehicle details created successfully' });
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ error: 'Database insertion failed' });
+    }
+};
+
+
+
 //================ createCustomerDetails ==================================================================
 exports.createCustomerDetails = (req, res) => {
     const { userName, email, mobile, comment } = req.body;
-
-    // Validate required fields
     if (!userName || !email || !mobile || !comment) {
         return res.status(400).json({ error: 'All fields are required' });
     }
@@ -490,6 +441,210 @@ exports.createCustomerDetails = (req, res) => {
         res.status(201).json({ message: 'Customer details created successfully' });
     });
 };
+
+// ============= Contact us ==============================================================================
+
+exports.addContactUs = (req,res)=>{
+    try {
+        const {name , phone , email, message } = req.body ;
+
+         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: "Invalid email format" });
+        }
+    
+        const sql = `INSERT INTO contactus (name , phone , email, message) value (?, ?, ?, ?)`;
+        const values = [name , phone , email, message ]
+         conn.query(sql,values,(err,result)=>{
+            if(err){                
+                return res.status(500).json({err:"Database insertion failed"})
+            }
+            res.status(200).json({message:'ContactUs Details add successfully.'})
+        })
+        
+    } catch (error) {
+        console.log(">>>",error);        
+        
+    }
+
+};
+
+// =========== Finance ============================================================================================
+
+exports.financeDetails = (req,res)=>{
+    try {
+        const {userName, email, phone, loanAmount, bikeModel, comment} = req.body ;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: "Invalid email format" });
+        }
+        const sql = `INSERT INTO finance (userName, email, phone, loanAmount, bikeModel, comment) value (?, ?, ?, ?, ?, ?)`;
+    
+        const value = [userName, email, phone, loanAmount, bikeModel, comment]
+        conn.query(sql,value,(err,result)=>{
+            if (err){
+               return res.status(500).json({ err: " Database insertion error"})
+            }
+          return  res.status(200).json({message :"finance added successfuliy"})
+    
+        })    
+        
+    } catch (error) {
+        console.log(error);
+        
+    }
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//=============================== fully dynamic api table ==========================================================
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+exports.createBikesWithDetails = async (req, res) => {
+    const conn = require('../config/conn').promise();
+
+    try {
+        const { bikeName, desc, image, title, moreImages, priceInCity, engine, power, transmission, specification, colours } = req.body;
+
+        if (!bikeName || !desc || !image || !priceInCity || !specification) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+        await conn.beginTransaction();
+        const [bikeResult] = await conn.query(
+            "INSERT INTO bikesDeatails (bikeName, description, image) VALUES (?, ?, ?)",
+            [bikeName, desc, image]
+        );
+        
+        const bikeId = bikeResult.insertId;
+        await conn.query(
+            "INSERT INTO bike_titles (bikeId, title, moreImages) VALUES (?, ?, ?)",
+            [bikeId, title, JSON.stringify(moreImages)]
+        );
+        for (const price of priceInCity) {
+            await conn.query(
+                "INSERT INTO bike_prices (bikeId, cityName, bikeModel, exShowroom) VALUES (?, ?, ?, ?)",
+                [bikeId, price.cityName, price.model, price.EX_SHOWROOM]
+            );
+        }
+        await conn.query(
+            "INSERT INTO bike_engine_specs (bikeId, engine, power, transmission) VALUES (?, ?, ?, ?)",
+            [bikeId, engine, power, transmission]
+        );
+        await conn.query(
+            "INSERT INTO bike_specifications (bikeId, specification) VALUES (?, ?)",
+            [bikeId, JSON.stringify(specification)]
+        );
+        for (const colour of colours) {
+            await conn.query(
+                "INSERT INTO bike_colours (bikeId, bikeName, bikeImage) VALUES (?, ?, ?)",
+                [bikeId, colour.bikeName, colour.bikeImage]
+            );
+        }
+        await conn.commit();
+
+        res.status(201).json({
+            message: "Bike created successfully",
+            bikeId,
+            bikeName,
+            desc,
+            image,
+            title,
+            moreImages,
+            priceInCity,
+            engine,
+            power,
+            transmission,
+            specification,
+            colours
+        });
+
+    } catch (err) {
+        console.error("Error:", err);
+        await conn.rollback();
+        res.status(500).json({ error: "Database insertion failed" });
+    }
+};
+
+exports.getBikesWithDetails = async (req, res) => {
+    try {
+        const sql = `
+            SELECT b.bikeId, b.bikeName, b.image, b.description, 
+                bt.title, bt.moreImages, 
+                be.engine, be.power, be.transmission, 
+                bs.specification 
+            FROM bikesDeatails b
+            LEFT JOIN bike_titles bt ON b.bikeId = bt.bikeId
+            LEFT JOIN bike_engine_specs be ON b.bikeId = be.bikeId
+            LEFT JOIN bike_specifications bs ON b.bikeId = bs.bikeId
+        `;
+
+        const [bikes] = await conn.promise().query(sql);
+        for (const bike of bikes) {
+            const [prices] = await conn.promise().query(
+                `SELECT cityName, bikeModel, exShowroom FROM bike_prices WHERE bikeId = ?`,
+                [bike.bikeId]
+            );
+            const [colours] = await conn.promise().query(
+                `SELECT colour FROM bike_colours WHERE bikeId = ?`,
+                [bike.bikeId]
+            );
+
+            bike.priceInCity = prices;
+            bike.colours = colours.map(c => c.colour); 
+        }
+
+        res.status(200).json({ bikes });
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ error: "Failed to fetch bike details" });
+    }
+};
+
+exports.getBikeByIdWithDetails = async (req, res) => {
+    try {
+        const { bikeId } = req.params;
+        const sql = `
+            SELECT b.bikeId, b.bikeName, b.image, b.description, 
+                bt.title, bt.moreImages, 
+                be.engine, be.power, be.transmission, 
+                bs.specification 
+            FROM bikesDeatails b
+            LEFT JOIN bike_titles bt ON b.bikeId = bt.bikeId
+            LEFT JOIN bike_engine_specs be ON b.bikeId = be.bikeId
+            LEFT JOIN bike_specifications bs ON b.bikeId = bs.bikeId
+            WHERE b.bikeId = ${bikeId}
+        `;
+
+        const [bikes] = await conn.promise().query(sql, [bikeId]);
+
+        if (bikes.length === 0) {
+            return res.status(404).json({ error: "Bike not found" });
+        }
+
+        let bike = bikes[0];
+        const [prices] = await conn.promise().query(
+            `SELECT cityName, bikeModel, exShowroom FROM bike_prices WHERE bikeId = ?`,
+            [bikeId]
+        );
+        const [colours] = await conn.promise().query(
+            `SELECT colour FROM bike_colours WHERE bikeId = ?`,
+            [bikeId]
+        );
+
+        bike.priceInCity = prices;
+        bike.colours = colours.map(c => c.colour);
+
+        res.status(200).json({ bike });
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ error: "Failed to fetch bike details" });
+    }
+};
+
+
 
 
 
